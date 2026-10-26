@@ -1,0 +1,44 @@
+using UnityEngine;
+
+public class ElasticAerialCamera : MonoBehaviour
+{
+    [Header("Target Tracking")]
+    [Tooltip("The character the camera will follow.")]
+    public Transform target;
+
+    [Header("Camera Offset")]
+    [Tooltip("The static distance and angle from the character (e.g., 0, 15, -10 for a top-down angled view).")]
+    public Vector3 offset = new Vector3(0f, 15f, -10f);
+
+    [Header("Elastic Motion Settings")]
+    [Tooltip("Approximately the time it takes the camera to catch up to the target. Lower values mean faster tracking.")]
+    public struct SmoothSettings
+    {
+        public float smoothTime;
+    }
+    public float smoothTime = 0.3f;
+
+    // Internal variables used by SmoothDamp to track velocity
+    private Vector3 _currentVelocity = Vector3.zero;
+
+    void LateUpdate()
+    {
+        // Safety check to avoid null reference errors if target is missing
+        if (target == null) return;
+
+        // Calculate the ideal target position based on the character's position and the offset
+        Vector3 targetPosition = target.position + offset;
+
+        // Smoothly interpolate from the current position to the target position
+        // This gives it that elastic, rubber-band "catching up" feel
+        transform.position = Vector3.SmoothDamp(
+            transform.position, 
+            targetPosition, 
+            ref _currentVelocity, 
+            smoothTime
+        );
+
+        // Keep the camera strictly looking down at the character
+        transform.LookAt(target.position);
+    }
+}
